@@ -1,45 +1,74 @@
-
-import numpy as np
 import glob
 import pandas as pd
 import os
-import scipy.stats as st
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 import xarray as xr
+from statsmodels.stats.multicomp import MultiComparison
 
 
-def s5p_no2_stat(df, vardep, st_yr, end_yr, confInt):
-    # Ordinary Least Squares (OLS) model
-    # compute F statistic and perform one-way anova for all three years
-    model = ols(f"{vardep} ~ year_class", data=df.dropna()).fit()
-    anova_table = sm.stats.anova_lm(model, typ=2)
+class StatisticalTest:
+    """
+    param: parameter which needs to be tested (statistically)
+    sigLevel: significance level for analysis
+    
+    =========================================
+    This class is used to perform statistical test
+    we perform one-way anova for 2019-2021 data
+    if the p-value is less than the significance level, 
+    we reject the null hypothesis, and perform tukey test
+    =========================================
+    """
+    
+    def __init__(self, param, sigLevel=0.01) -> None:
+        self.param = param
+        self.sigLevel = sigLevel
 
-    st_idx = df.loc[df.year_class == st_yr, [f"{vardep}", "mm-dd"]].set_index("mm-dd")
-    end_idx = df.loc[df.year_class == end_yr, [f"{vardep}", "mm-dd"]].set_index("mm-dd")
-    data = st_idx - end_idx
-    data = data.dropna()[f"{vardep}"]
-    conf_interval = st.t.interval(alpha=confInt, df=len(data)-1, loc=np.mean(data), scale=st.sem(data))  # or st.norm.interval(alpha=0.99, loc=np.mean(data), scale=st.sem(data))
+    def printer(self, anova_table):
+        print("=" * 50)
+        print(anova_table)
+        print("=" * 50)
+        if anova_table.loc["year_class", "PR(>F)"] < self.sigLevel:
+            return True
+        print("Results not significant. Accept null hypothesis!")
+        return False
 
-    if anova_table.loc['year_class', 'PR(>F)' ] < 0.01:
-        return True, (data.mean(), conf_interval)
-    print("Result not significant. Exiting!")
-    return False, ()
+    def anova_test(self, df):
+        # Ordinary Least Squares (OLS) model
+        # compute F statistic and perform one-way anova for all three years
+        df = df.dropna(subset=[self.param, "year_class"])
+        model = ols(f"{self.param} ~ year_class", data=df).fit()
+        anova_table = sm.stats.anova_lm(model, typ=1)
+        return self.printer(anova_table)
+
+    def tukey_test(self, df):
+        # if null hypothesis is rejected, perform pairwise tukey-hsd
+        anova_bool = self.anova_test(df)
+        if anova_bool:
+            df = df.dropna(subset=["year_class", self.param])
+            mc = MultiComparison(df[self.param], df["year_class"])
+            print(mc.tukeyhsd(self.sigLevel).summary())
+
+            return None
+
+        return None
 
 def read_chirps():
     # read all files in the directory for rainfall
     rainfall_files = glob.glob(os.path.join(os.pardir, "assets", "rainfall", "*.csv"))
-    c_df = [pd.read_csv(i, parse_dates=["time"]).set_index("time") for i in rainfall_files]
+    c_df = [
+        pd.read_csv(i, parse_dates=["time"]).set_index("time") for i in rainfall_files
+    ]
     df_rainfall = pd.concat(c_df)
-
     return df_rainfall
+
 
 def read_2mtemp():
 
-    _coords = (12.9716, 77.59) # Bengaluru coords
-    path_2tmp =  os.path.join(os.pardir, 'assets', '2m_temp')
+    _coords = (77.59, 12.9716)  # Bengaluru coords
+    path_2tmp = os.path.join(os.pardir, "assets", "2m_temp")
     ds = xr.open_dataset(os.path.join(path_2tmp, "2mtemperature.nc"))
-    ds = ds.sel(longitude=_coords[0], latitude=_coords[1], method='nearest')
+    ds = ds.sel(longitude=_coords[0], latitude=_coords[1], method="nearest")
     ds = ds.to_dataframe()
     ds.index = ds.index.date
     return ds

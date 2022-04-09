@@ -1,7 +1,5 @@
 import cdsapi
 import os
-import xarray as xr
-
 
 if __name__ == '__main__':
     

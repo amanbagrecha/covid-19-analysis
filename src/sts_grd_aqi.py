@@ -1,9 +1,8 @@
 import pandas as pd
 import numpy as np
 import glob
-from utils import read_chirps, s5p_no2_stat
+from utils import read_chirps, StatisticalTest
 import os
-from statsmodels.stats.multicomp import MultiComparison
 
 def formatdf(df):
 
@@ -61,7 +60,7 @@ def sub_index(a, b):
         return np.nan
 
 
-def aqi(row):
+def aqi(row, column_list):
     mylist = [sub_index(row[i], atm[i]) for i in column_list if i != "NO"]
     return max(mylist)
 
@@ -73,12 +72,12 @@ if __name__=='__main__':
     
     # read ground aqi data
     path_assets = os.path.join(os.pardir, 'assets', 'grd_aqi')
-    confInt = 0.99
+    sigLevel = 0.01
     # air quality ground station
     c_df = [formatdf(pd.read_excel(i)) for i in glob.glob(os.path.join(path_assets, "*.xlsx"))]
     df_aqi = pd.concat(c_df).set_index("_index")
     column_list = df_aqi.columns
-    df_aqi["AQI"] = df_aqi.apply(lambda row: aqi(row), axis=1)
+    df_aqi["AQI"] = df_aqi.apply(lambda row: aqi(row, column_list), axis=1)
     df_aqi.index.name = None
     df_aqi["mm-dd"] = df_aqi.index.strftime("%m-%d")
 
@@ -87,21 +86,17 @@ if __name__=='__main__':
 
     # Join rainfall and ground station air quality data
     df_anlys = df_rainfall.join(df_aqi, how="inner")
-    df_anlys = df_anlys.loc[df_anlys.precip < 5]
-
+    df_anlys.loc[:,"precip_past"] = df_anlys["precip"].shift(1)
+    df_anlys.loc[:,"precip_past2"] = df_anlys["precip"].shift(2)
+    df_anlys = df_anlys.loc[(df_anlys.precip < 5) & (df_anlys.precip_past < 5)]
 
     # add unique id for statistical analysis
     for year in [2019, 2020, 2021]:
         df_anlys.loc[f"{year}-03-24":f"{year}-05-30", "year_class"] = str(year)
 
-    # perform one-way anova
-    anova_bool, mean_conf = s5p_no2_stat(df_anlys, "AQI", "2019", "2020", confInt=confInt)
 
-    # if null hypothesis is rejected, perform pairwise tukey-hsd
-    if anova_bool:    
-        # perform tuckey test
-        df_tukey = df_anlys.dropna()
-        mc = MultiComparison(df_tukey['AQI'], df_tukey['year_class'])
-        print(mc.tukeyhsd(1- confInt).summary())
+    for param in ["AQI"]:
+        print(f"statistical analyis for param: {param}")
+        myobj = StatisticalTest(param, sigLevel)
+        myobj.tukey_test(df_anlys)
         
-        print(mean_conf)

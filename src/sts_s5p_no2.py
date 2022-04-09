@@ -2,8 +2,9 @@
 
 import pandas as pd
 import glob
+from utils import read_chirps, StatisticalTest
 import os
-from utils import s5p_no2_stat, read_chirps
+
 
 def formatter(filepath):
     df = pd.read_csv(filepath)
@@ -14,27 +15,36 @@ def formatter(filepath):
     )
     df.rename(columns={"tropospheric_NO2_column_number_density": "T_NO2"}, inplace=True)
     df = df.set_index("date")
+    df["mm-dd"] = df.index.strftime("%m-%d")
     return df
 
 
-# read all files in the directory for no2
-c_df = [formatter(i) for i in glob.glob("*.csv")]
-df_no2 = pd.concat(c_df)
-df_no2.index.name = None
-df_no2["mm-dd"] = df_no2.index.strftime("%m-%d")
+if __name__ == "__main__":
 
-# unique column `year class` to assign values to during covid period
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(dirname)
 
-# rainfall 
-df_rainfall = read_chirps()
+    # read ground aqi data
+    path_assets = os.path.join(os.pardir, "assets", "sat_no2_blr")
+    sigLevel = 0.01
 
-# Join rainfall and satellite NO2 data; remove high intensity rainfall
-df_merge = df_rainfall.join(df_no2, how="inner")
-df_merge = df_merge.loc[df_merge.precip < 5]
+    # read all files in the directory for no2
+    c_df = [formatter(i) for i in glob.glob(os.path.join(path_assets, "*.csv"))]
+    df_no2 = pd.concat(c_df)
+    # df_no2.index.name = None
 
-for year in [2019, 2020, 2021]:
-    df_merge.loc[f"{year}-03-24":f"{year}-05-30", "year_class"] = str(
-        year
-    )
+    # rainfall
+    df_rainfall = read_chirps()
 
-s5p_no2_stat(df_merge, "T_NO2", "2019", "2020", 0.99)
+    # Join rainfall and satellite NO2 data; remove high intensity rainfall
+    df_merge = df_rainfall.join(df_no2, how="inner")
+    df_merge = df_merge.loc[df_merge.precip < 5]
+
+    # unique column `year class` to assign values to during covid period
+    for year in [2019, 2020, 2021]:
+        df_merge.loc[f"{year}-03-24":f"{year}-05-30", "year_class"] = str(year)
+
+    for param in ["T_NO2"]:
+        print(f"statistical analyis for param: {param}")
+        myobj = StatisticalTest(param, sigLevel)
+        myobj.tukey_test(df_merge)
