@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import glob
-import matplotlib.pyplot as plt
 from utils import read_chirps, s5p_no2_stat
-
+import os
+from statsmodels.stats.multicomp import MultiComparison
 
 def formatdf(df):
 
@@ -19,6 +19,7 @@ def formatdf(df):
     dff = dfe.merge(dfc, on="From Date", how="outer")
     dff["_index"] = pd.to_datetime(dff["From Date"], format="%d-%m-%Y %H:%M")
     dff = dff.replace({"None": np.nan})
+    dff = dff.dropna(axis =1, how="all")
     dff = dff.drop("From Date", axis=1)
     return dff
 
@@ -65,26 +66,42 @@ def aqi(row):
     return max(mylist)
 
 
-# air quality ground station
-c_df = [formatdf(pd.read_excel(i)) for i in glob.glob("*.xlsx")]
-df_aqi = pd.concat(c_df).set_index("_index")
-column_list = df_aqi.columns
-df_aqi["AQI"] = df_aqi.apply(lambda row: aqi(row), axis=1)
-df_aqi.index.name = None
-df_aqi["mm-dd"] = df_aqi.index.strftime("%m-%d")
+if __name__=='__main__':
+
+    dirname = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(dirname)
+    
+    # read ground aqi data
+    path_assets = os.path.join(os.pardir, 'assets', 'grd_aqi')
+    confInt = 0.99
+    # air quality ground station
+    c_df = [formatdf(pd.read_excel(i)) for i in glob.glob(os.path.join(path_assets, "*.xlsx"))]
+    df_aqi = pd.concat(c_df).set_index("_index")
+    column_list = df_aqi.columns
+    df_aqi["AQI"] = df_aqi.apply(lambda row: aqi(row), axis=1)
+    df_aqi.index.name = None
+    df_aqi["mm-dd"] = df_aqi.index.strftime("%m-%d")
+
+    # read rainfall
+    df_rainfall = read_chirps()
+
+    # Join rainfall and ground station air quality data
+    df_anlys = df_rainfall.join(df_aqi, how="inner")
+    df_anlys = df_anlys.loc[df_anlys.precip < 5]
 
 
-# read rainfall
-df_rainfall = read_chirps()
+    # add unique id for statistical analysis
+    for year in [2019, 2020, 2021]:
+        df_anlys.loc[f"{year}-03-24":f"{year}-05-30", "year_class"] = str(year)
 
-# Join rainfall and ground station air quality data
-df_anlys = df_rainfall.join(df_aqi, how="inner")
-df_anlys = df_anlys.loc[df_anlys.precip < 5]
+    # perform one-way anova
+    anova_bool, mean_conf = s5p_no2_stat(df_anlys, "AQI", "2019", "2020", confInt=confInt)
 
-
-# add unique id for statistical analysis
-for year in [2019, 2020]:
-    df_anlys.loc[f"{year}-03-24":f"{year}-05-19", "year_class"] = str(year)
-
-# perform stats
-s5p_no2_stat(df_anlys, "AQI", "2019", "2020")
+    # if null hypothesis is rejected, perform pairwise tukey-hsd
+    if anova_bool:    
+        # perform tuckey test
+        df_tukey = df_anlys.dropna()
+        mc = MultiComparison(df_tukey['AQI'], df_tukey['year_class'])
+        print(mc.tukeyhsd(1- confInt).summary())
+        
+        print(mean_conf)
