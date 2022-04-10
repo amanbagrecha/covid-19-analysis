@@ -20,7 +20,6 @@ class EarthEngineExport:
     def maskL8sr(self, image):
         # Bits 3 and 4 are cloud shadow and cloud, respectively.
         cloudShadowBitMask = (1 << 3)
-        cloudShadowBitMask = (1 << 3)
         cloudsBitMask = (1 << 4)
         qa = image.select('QA_PIXEL')
         mask = qa.bitwiseAnd(cloudShadowBitMask).eq(0).And(

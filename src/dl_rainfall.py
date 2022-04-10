@@ -1,7 +1,7 @@
 import xarray as xr
 import os
 
-class DownloadCHIRPS:
+class readCHIRPS:
   def __init__(self, year, coords, find_path):
     self.year = year
     self.lon = coords[0]
@@ -34,7 +34,7 @@ if __name__=='__main__':
     dirname = os.path.dirname(os.path.abspath(__file__))
     os.chdir(dirname)
     
-    _range = (2019, 2022) # year we want to download data
+    _range = (2019, 2022) # year we want to read data
     _coords = (77.59, 12.9716) # Bengaluru coords
     path_rainfall = os.path.join(os.pardir, 'tmp')
     path_assets = os.path.join(os.pardir, 'assets', 'rainfall')
@@ -45,6 +45,6 @@ if __name__=='__main__':
         os.mkdir(path_assets)
 
     for year in range(*_range):
-        dl = DownloadCHIRPS(year, _coords, path_rainfall)
+        dl = readCHIRPS(year, _coords, path_rainfall)
         dl.save_netCDF(path_assets)
     

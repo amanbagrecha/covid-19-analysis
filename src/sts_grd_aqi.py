@@ -87,7 +87,6 @@ if __name__=='__main__':
     # Join rainfall and ground station air quality data
     df_anlys = df_rainfall.join(df_aqi, how="inner")
     df_anlys.loc[:,"precip_past"] = df_anlys["precip"].shift(1)
-    df_anlys.loc[:,"precip_past2"] = df_anlys["precip"].shift(2)
     df_anlys = df_anlys.loc[(df_anlys.precip < 5) & (df_anlys.precip_past < 5)]
 
     # add unique id for statistical analysis

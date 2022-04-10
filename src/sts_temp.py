@@ -26,7 +26,7 @@ if __name__ == "__main__":
     path_2temp = os.path.join(os.pardir, "assets", "2m_temp")
     path_lst = os.path.join(os.pardir, "assets", "modis_lst")
     sigLevel = 0.01
-
+    _range = (2019, 2022) # year we want to read data
     # LAND SURFACE TEMPERATURE FILES READING
     c_df = [formatter(i) for i in glob.glob(os.path.join(path_lst, "*.csv"))]
     df_lst = pd.concat(c_df)
@@ -38,14 +38,13 @@ if __name__ == "__main__":
 
     df_join = df_rainfall[["precip"]].join(df_2temp).join(df_lst)
     df_join.loc[:,"precip_past"] = df_join["precip"].shift(1)
-    df_join.loc[:,"precip_past2"] = df_join["precip"].shift(2)
 
     df_anlys = df_join.loc[
-        (df_join.precip < 5) & (df_join.precip_past < 5)# & (df_join.precip_past2 < 5)
+        (df_join.precip < 5) & (df_join.precip_past < 5)
     ]
 
     # covid-19 timeframe is from mar 24 to may 30
-    for year in [2019, 2020, 2021]:
+    for year in range(*_range):
         df_anlys.loc[f"{year}-03-24":f"{year}-05-30", "year_class"] = str(year)
 
     for param in ["t2m", "ST_B10_mean"]:
