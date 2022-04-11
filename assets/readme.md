@@ -1,6 +1,6 @@
 # What data does this folder contain?
 
-```py
+```sh
 ├── 2m_temp
 │   └── 2mtemperature.nc # era-5 downloaded file for 6 months of 2019-2021
 ├── blr_shp # shapefile of bengaluru for ploting
