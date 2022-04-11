@@ -2,7 +2,7 @@
 
 Analysing imapact of covid-19 on air quality and land temperature using satellite data.
 
-Solution document can be found [here](https://www.notion.so/Spatio-Temporal-Analysis-of-Covid-19-on-Environment-4f3e688110564e3cb59fd7d2cc710789)
+Solution document can be found [here](https://coconut-heath-dfb.notion.site/Temporal-Analysis-of-Covid-19-and-its-Impact-on-Environment-4f3e688110564e3cb59fd7d2cc710789)
 
 ## Objective
 We investigate and quantify changes in pollutant and aerosol (NO2) levels across Bengaluru, India as a result of covid-19 lockdown and also perceive implications of reduced emissions. Further investigate if changes in atmospheric pollutant have impacted temperature. To do so, we would compare and contrast ground measurements and remotely sensed observations between March 2020 - May 2020 with those over the same months in 2019 and 2021.
