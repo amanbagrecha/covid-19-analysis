@@ -18,3 +18,5 @@
 
 Sentinel 5P data is downloaded from earth engine, the script for which can be found [here](https://code.earthengine.google.com/6406ab577a713ae7beaee05a7e550cc2)
 MODIS Time Series data is downloaded from earth engine, the script for which can be found [here](https://code.earthengine.google.com/4e83ce0c942dbd0e320ae794be14d264)
+
+Note: Accessing the above code would require earth engine registration. A gist for the code can be found [here](https://gist.github.com/amanbagrecha/dc9bbb6f9f80b143cd2d1b95da62fa93) 
