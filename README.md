@@ -25,8 +25,9 @@ We investigate and quantify changes in pollutant and aerosol (NO2) levels across
 
 ## Documents
 - [analysis code](https://github.com/amanbagrecha/covid-19-analysis/blob/main/src/main.ipynb)
-- [summary document](https://www.notion.so/Summary-15e874544bb9478a8273529882e5e5b5)
-- [solution document](https://www.notion.so/Temporal-Analysis-of-Covid-19-and-its-Impact-on-Environment-4f3e688110564e3cb59fd7d2cc710789)
+- [summary document](https://coconut-heath-dfb.notion.site/Summary-document-15e874544bb9478a8273529882e5e5b5)
+- [solution document](https://coconut-heath-dfb.notion.site/Temporal-Analysis-of-Covid-19-and-its-Impact-on-Environment-4f3e688110564e3cb59fd7d2cc710789)
+- 
 
 ## 🛠️ Dataset in use
 - [CPCB](https://app.cpcbccr.com/ccr/#/caaqm-dashboard-all/caaqm-landing/data) **—** Daily Air Quality data for Silk Board Station
