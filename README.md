@@ -23,7 +23,7 @@ We investigate and quantify changes in pollutant and aerosol (NO2) levels across
 - Near identical condition are necessary to ascertain the difference in various atmospheric parameter are not a coincidence but in fact because of decline in anthropogenic activity during lockdown. To ascertain this, we undertake measures to control for precipitation.
 - In case of LST,  a single point statistic cannot be representative of entire region due to natural variability.
 
-## documents
+## Documents
 - [analysis code](https://github.com/amanbagrecha/covid-19-analysis/blob/main/src/main.ipynb)
 - [summary document](https://www.notion.so/Summary-15e874544bb9478a8273529882e5e5b5)
 - [solution document](https://www.notion.so/Temporal-Analysis-of-Covid-19-and-its-Impact-on-Environment-4f3e688110564e3cb59fd7d2cc710789)
@@ -43,7 +43,7 @@ We investigate and quantify changes in pollutant and aerosol (NO2) levels across
 - matplotlib, seaborn
  - rasterio, xarray
 
-# 📋 Further modification that can be done.
+## 📋 Further modification that can be done.
 - Use of Air temperature measurement (from IMD AWS) to quantify the relationship with satellite based measurements.
 - Look at traffic condition (number of accidents reported, number of vehicle purchases) or noise pollution levels as a result of drop in air quality. Verify if cause of air/noise pollution is traffic or industry or something else.
 - Control for other meteorological parameters: fires, storm.
